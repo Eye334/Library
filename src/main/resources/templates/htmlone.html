@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .content{
+            width: 400px;
+            margin:0 auto;
+        }
+        .fenye{
+            width: 100%;
+            text-align: center;
+        }
+        a,#pre,#next{
+            display: inline-table;
+            width: 40px;
+            height: 40px;
+            border-left: thin solid #ccc;
+            border-top: thin solid #ccc;
+            border-bottom: thin solid #ccc;
+            color: #333;
+            line-height: 40px;
+            cursor: pointer;
+        }
+        #next{
+            border-right: thin solid #ccc;
+        }
+        a:hover,#pre:hover,#next:hover,.isThis{
+            background-color: #1E9FFF;
+            border: thin solid #1E9FFF;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<body>
+<div class="content"></div>
+<div class="fenye"></div>
+</body>
+<script>
+    var $content=$(".content");
+    var pageIndex=1;//当前页码
+    var pageSize=25;//一页显示的数据量
+    var totalPage;//总页数
+    var data;
+    var postData='各个后台需要的参数格式不一样，但一般都会要求有每页显示的数据量、当前页码等';
+    $.ajax({
+        type:"post",
+        url:"/testone",
+        data:postData,
+        async:false,//默认是true,改为false,可从外部获取在ajax里设置的全局变量
+        success:function(result){
+            var res=JSON.parse(result);
+            data=res.content;
+            var totalElements=res.totalElements;//数据的总数是后台返回的
+            totalPage= Math.ceil(totalElements/pageSize);//总页数，如果后台可以返过来的话，就不需要计算，直接获取就可以了
+            showFenye();//显示分页
+        }
+    })
+    showData();
+    //在<div class="content"></div>中显示数据
+    function showData(){
+        $content.html("");
+        postData='各个后台需要的参数格式不一样，但一般都会要求有每页显示的数据量、当前页码等';
+        $.ajax({
+            type:"post",
+            url:"testone",
+            data:postData,
+            async:false,
+            success:function(result){
+                var res=JSON.parse(result);//将返回数据转为对象
+                data=res.content;//获取返回数据中的需要显示的数据部分
+                for(var i=0;i<pageSize && i<data.length;i++){
+                    // var info='<div class="info"><caption>'+data[i].time+'</caption>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>'+data[i].score+'</span></div>';这句话已封装为var info=creatData(data[i]);
+                    var info=creatData(data[i]);
+                    $content.append(info);
+                }
+            }
+        })
+    }
+    //创建需要插入的数据内容
+    function creatData(data){
+        var demo='<div class="info"><caption>'+data.time+'</caption>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>'+data.score+'</span></div>';
+        return demo;
+    }
+    //将分页数据填入分页<div class="fenye"></div>
+    function showFenye(){
+        var $fenye=$(".fenye");
+        var fenyeInfo='<span id="pre">&lt;&lt;</span>';//<<
+        //中间的页码
+        for(var i=0;i<totalPage;i++){
+            var j=i+1;
+            fenyeInfo+="<a>"+j+"</a>";
+        }
+        fenyeInfo=fenyeInfo+'<span id="next">&gt;&gt;</span>';//>>
+        $fenye.append(fenyeInfo);
+    }
+
+    //以下内容都需要在$fenye.append(fenyeInfo)执行完之后执行，不然在数据还未填充的状态下将无法执行
+    //isThis为当前页的状态
+    $($(".fenye a")[0]).addClass("isThis");
+    //页码点击事件
+    for(var i=0;i<totalPage;i++){
+        $(".fenye a")[i].οnclick=function(){
+            pageIndex=$(this).text();
+            $(".isThis").removeClass("isThis");
+            $(this).addClass("isThis");
+            showData();
+        }
+    }
+    //前一页的点击事件
+    $("#pre").bind("click",function(e){
+        if(pageIndex>1){
+            pageIndex=pageIndex-1;
+            $(".isThis").removeClass("isThis");
+            $($(".fenye a")[pageIndex-1]).addClass("isThis");
+            showData();
+        }
+        else{}
+    })
+    //后一页的点击事件
+    $("#next").bind("click",function(){
+        if(pageIndex<totalPage){
+            pageIndex=pageIndex+1;
+            $(".isThis").removeClass("isThis");
+            $($(".fenye a")[pageIndex-1]).addClass("isThis");
+            showData();
+        }
+        else{}
+    })
+
+</script>
+</body>
+</html>
